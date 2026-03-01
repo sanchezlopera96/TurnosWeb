@@ -1,0 +1,70 @@
+.info-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: #1e40af;
+}
+
+.btn-full { width: 100%; padding: 12px; }
+
+.appointment-result {
+    max-width: 500px;
+    margin-top: 24px;
+
+    h3 {
+    color: #059669;
+    margin-bottom: 20px;
+    font-size: 18px;
+    }
+}
+
+.result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.result-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.result-label {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.result-value {
+    font-size: 15px;
+    color: #1a2047;
+    font-weight: 500;
+
+    &.code {
+    font-size: 22px;
+    font-weight: 700;
+    color: #272673;
+    letter-spacing: 2px;
+    }
+
+    &.timer {
+    font-size: 18px;
+    font-weight: 700;
+    color: #d97706;
+    }
+}
+
+.result-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    align-items: center;
+}

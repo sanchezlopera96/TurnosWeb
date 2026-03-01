@@ -1,0 +1,97 @@
+<div class="page-container">
+  <div class="page-header">
+    <h2>Sucursales</h2>
+    <button class="btn btn-primary" (click)="showForm = true" *ngIf="!showForm">
+      + Nueva Sucursal
+    </button>
+  </div>
+
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <!-- Form -->
+  <div class="card form-card" *ngIf="showForm">
+    <h3>{{ editingBranch ? 'Editar Sucursal' : 'Nueva Sucursal' }}</h3>
+    <div class="form-group">
+      <label>Nombre</label>
+      <input
+        type="text"
+        [(ngModel)]="form.name"
+        placeholder="Nombre de la sucursal"
+        [class.error]="submitted && !form.name"
+      />
+      <span class="error-msg" *ngIf="submitted && !form.name">El nombre es requerido</span>
+    </div>
+    <div class="form-group">
+      <label>Dirección</label>
+      <input
+        type="text"
+        [(ngModel)]="form.address"
+        placeholder="Dirección"
+        [class.error]="submitted && !form.address"
+      />
+      <span class="error-msg" *ngIf="submitted && !form.address">La dirección es requerida</span>
+    </div>
+    <div class="form-group">
+      <label>Ciudad</label>
+      <input
+        type="text"
+        [(ngModel)]="form.city"
+        placeholder="Ciudad"
+        [class.error]="submitted && !form.city"
+      />
+      <span class="error-msg" *ngIf="submitted && !form.city">La ciudad es requerida</span>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" (click)="save()" [disabled]="loading">
+        {{ loading ? 'Guardando...' : 'Guardar' }}
+      </button>
+      <button class="btn btn-secondary" (click)="cancelForm()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading && !showForm">
+    <div class="spinner"></div>
+    <p>Cargando sucursales...</p>
+  </div>
+
+  <!-- Table -->
+  <div class="card table-card" *ngIf="!loading && branches.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Dirección</th>
+          <th>Ciudad</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let branch of branches">
+          <td>
+            <strong>{{ branch.name }}</strong>
+          </td>
+          <td>{{ branch.address }}</td>
+          <td>{{ branch.city }}</td>
+          <td>
+            <span [class]="branch.isActive ? 'badge badge-active' : 'badge badge-cancelled'">
+              {{ branch.isActive ? 'Activa' : 'Inactiva' }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-secondary btn-sm" (click)="edit(branch)">Editar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty -->
+  <div class="card empty-state" *ngIf="!loading && branches.length === 0 && !showForm">
+    <span>🏢</span>
+    <p>No hay sucursales registradas</p>
+    <button class="btn btn-primary" (click)="showForm = true">Crear primera sucursal</button>
+  </div>
+</div>
