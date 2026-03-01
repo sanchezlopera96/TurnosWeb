@@ -104,6 +104,8 @@ ng test
 
 ## Arquitectura
 
+![alt text](arquitectura.png)
+
 ```
 src/app/
 ├── core/
