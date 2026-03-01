@@ -18,8 +18,11 @@ export class AppointmentService {
     return this.http.post<ApiResponse<Appointment>>(this.apiUrl, request);
   }
 
-  getAll(): Observable<ApiResponse<Appointment[]>> {
-    return this.http.get<ApiResponse<Appointment[]>>(this.apiUrl);
+  getAll(branchId?: string, status?: string, todayOnly: boolean = true): Observable<ApiResponse<Appointment[]>> {
+    let url = `${this.apiUrl}?todayOnly=${todayOnly}`;
+    if (branchId) url += `&branchId=${branchId}`;
+    if (status) url += `&status=${status}`;
+    return this.http.get<ApiResponse<Appointment[]>>(url);
   }
 
   getById(id: string): Observable<ApiResponse<Appointment>> {
