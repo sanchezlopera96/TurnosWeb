@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { AppointmentService } from '../../../core/services/appointment.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -8,7 +8,7 @@ import { Appointment } from '../../../core/models/appointment.model';
 @Component({
   selector: 'app-appointment-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DatePipe],
   template: `
     <div class="page-container">
       <div class="page-header">
@@ -18,21 +18,14 @@ import { Appointment } from '../../../core/models/appointment.model';
         </button>
       </div>
 
-      <div class="alert alert-error" *ngIf="errorMessage">
-        {{ errorMessage }}
-      </div>
+      <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+      <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
 
-      <div class="alert alert-success" *ngIf="successMessage">
-        {{ successMessage }}
-      </div>
-
-      <!-- Loading -->
       <div class="loading" *ngIf="loading">
         <div class="spinner"></div>
         <p>Cargando turnos...</p>
       </div>
 
-      <!-- Empty -->
       <div class="card empty-state" *ngIf="!loading && appointments.length === 0">
         <span>📋</span>
         <p>No hay turnos disponibles</p>
@@ -41,7 +34,6 @@ import { Appointment } from '../../../core/models/appointment.model';
         </button>
       </div>
 
-      <!-- Table -->
       <div class="card table-card" *ngIf="!loading && appointments.length > 0">
         <table class="table">
           <thead>
@@ -102,7 +94,6 @@ import { Appointment } from '../../../core/models/appointment.model';
       gap: 16px;
       color: #6b7280;
     }
-
     .spinner {
       width: 40px;
       height: 40px;
@@ -111,9 +102,7 @@ import { Appointment } from '../../../core/models/appointment.model';
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-
     @keyframes spin { to { transform: rotate(360deg); } }
-
     .empty-state {
       text-align: center;
       padding: 48px;
@@ -121,40 +110,26 @@ import { Appointment } from '../../../core/models/appointment.model';
       flex-direction: column;
       align-items: center;
       gap: 16px;
-
       span { font-size: 48px; }
       p { color: #6b7280; font-size: 16px; }
     }
-
     .table-card { padding: 0; overflow: hidden; }
-
-    .code {
-      color: #272673;
-      letter-spacing: 1px;
-      font-size: 15px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-sm {
-      padding: 6px 12px;
-      font-size: 12px;
-    }
+    .code { color: #272673; letter-spacing: 1px; font-size: 15px; }
+    .actions { display: flex; gap: 8px; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
   `]
 })
 export class AppointmentListComponent implements OnInit {
   appointments: Appointment[] = [];
-  loading = false;
+  loading = true;
   errorMessage = '';
   successMessage = '';
 
   constructor(
     private appointmentService: AppointmentService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   get isAdmin(): boolean {
@@ -174,12 +149,20 @@ export class AppointmentListComponent implements OnInit {
     request.subscribe({
       next: (response) => {
         this.loading = false;
-        if (response.success) this.appointments = response.data;
-        else this.errorMessage = response.message;
+        if (response.success) {
+          this.appointments = response.data;
+          if (!this.isAdmin && this.appointments.length === 0) {
+            this.router.navigate(['/appointments/create']);
+          }
+        } else {
+          this.errorMessage = response.message;
+        }
+        this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
         this.errorMessage = 'Error al cargar los turnos.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -195,9 +178,11 @@ export class AppointmentListComponent implements OnInit {
         } else {
           this.errorMessage = response.message;
         }
+        this.cdr.detectChanges();
       },
       error: () => {
         this.errorMessage = 'Error al activar el turno.';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -213,9 +198,11 @@ export class AppointmentListComponent implements OnInit {
         } else {
           this.errorMessage = response.message;
         }
+        this.cdr.detectChanges();
       },
       error: () => {
         this.errorMessage = 'Error al actualizar el turno.';
+        this.cdr.detectChanges();
       }
     });
   }
