@@ -1,59 +1,115 @@
-# TurnosWeb
+# TurnosWeb — Frontend Angular del Sistema de Agendamiento de Turnos
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+## Descripción
 
-## Development server
+Aplicación web desarrollada en Angular para el agendamiento de turnos bancarios.
+Consume la API REST [TurnosAPI](https://github.com/tu-usuario/TurnosAPI).
 
-To start a local development server, run:
+## Tecnologías
 
+- Angular 21.2.0
+- TypeScript 5.9.3
+- Node.js 22.12.0
+- SCSS
+- JWT Authentication
+- Vitest 4.0.18
+
+## Arquitectura
+```
+src/app/
+├── core/
+│   ├── models/        ← Interfaces y tipos
+│   ├── services/      ← Servicios HTTP
+│   ├── interceptors/  ← Interceptor JWT
+│   └── guards/        ← Guards de autenticación
+├── features/
+│   ├── auth/          ← Login (admin y cliente)
+│   ├── appointments/  ← Agendar y listar turnos
+│   └── branches/      ← Gestión de sucursales
+└── shared/
+    └── components/    ← Componentes reutilizables
+```
+
+## Requisitos Previos
+
+- Node.js 22+
+- Angular CLI 21+
+- [TurnosAPI](https://github.com/tu-usuario/TurnosAPI) corriendo en `https://localhost:7047`
+
+## Configuración y Ejecución
+
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/tu-usuario/TurnosWeb.git
+cd TurnosWeb
+```
+
+### 2. Instalar dependencias
+```bash
+npm install
+```
+
+### 3. Configurar la URL de la API
+
+Edita `src/environments/environment.ts`:
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'https://localhost:7047/api'
+};
+```
+
+### 4. Ejecutar la aplicación
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Aplicación disponible en: `http://localhost:4200`
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
+### 5. Ejecutar pruebas
 ```bash
 ng test
 ```
 
-## Running end-to-end tests
+## Funcionalidades
 
-For end-to-end (e2e) testing, run:
+### Cliente
+- Autenticación con número de cédula
+- Agendar turno seleccionando sucursal
+- Ver countdown de 15 minutos para activar el turno
+- Listar sus turnos con estado en tiempo real
+- Activar turno en sucursal
+- Cancelar turno
 
-```bash
-ng e2e
-```
+### Administrador
+- Autenticación con usuario y contraseña
+- Ver todos los turnos del sistema
+- Marcar turnos como atendidos
+- Cancelar turnos
+- Crear y editar sucursales
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Roles y Acceso
 
-## Additional Resources
+| Funcionalidad | Cliente | Administrador |
+|---------------|---------|---------------|
+| Login | Cédula | Usuario + Contraseña |
+| Agendar turno | ✅ | ❌ |
+| Ver mis turnos | ✅ | ❌ |
+| Activar turno | ✅ | ❌ |
+| Ver todos los turnos | ❌ | ✅ |
+| Marcar como atendido | ❌ | ✅ |
+| Gestionar sucursales | ❌ | ✅ |
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Reglas de Negocio
+
+- Los turnos expiran a los **15 minutos** si no son activados
+- Máximo **5 turnos por cliente por día**
+- El cliente ve un contador regresivo al agendar su turno
+
+## Colores Corporativos
+
+| Color | Hex |
+|-------|-----|
+| Azul principal | `#272673` |
+| Azul marino | `#1a2047` |
+| Blanco | `#ffffff` |
