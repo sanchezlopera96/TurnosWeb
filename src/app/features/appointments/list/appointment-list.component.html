@@ -55,68 +55,70 @@
   </div>
 
   <div class="card table-card" *ngIf="!loading && appointments.length > 0">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th *ngIf="isAdmin">Cédula</th>
-          <th>Sucursal</th>
-          <th>Estado</th>
-          <th>Creado</th>
-          <th>Expira</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let appointment of appointments">
-          <td>
-            <strong class="code">{{ appointment.code }}</strong>
-          </td>
-          <td *ngIf="isAdmin">{{ appointment.customerIdNumber }}</td>
-          <td>{{ appointment.branchName }}</td>
-          <td>
-            <span [class]="'badge badge-' + appointment.status.toLowerCase()">
-              {{ getStatusLabel(appointment.status) }}
-            </span>
-          </td>
-          <td>{{ appointment.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
-          <td>{{ appointment.expiresAt | date: 'HH:mm' }}</td>
-          <td class="actions">
-            <!-- Cliente: activar -->
-            <button
-              class="btn btn-primary btn-sm"
-              *ngIf="!isAdmin && appointment.status === 'Pending'"
-              (click)="activate(appointment)"
-            >
-              Activar
-            </button>
-            <!-- Admin: activar -->
-            <button
-              class="btn btn-primary btn-sm"
-              *ngIf="isAdmin && appointment.status === 'Pending'"
-              (click)="activate(appointment)"
-            >
-              Activar
-            </button>
-            <!-- Admin: atendido -->
-            <button
-              class="btn btn-success btn-sm"
-              *ngIf="isAdmin && appointment.status === 'Active'"
-              (click)="updateStatus(appointment, 'Attended')"
-            >
-              Atendido
-            </button>
-            <!-- Cancelar -->
-            <button
-              class="btn btn-danger btn-sm"
-              *ngIf="appointment.status === 'Pending' || appointment.status === 'Active'"
-              (click)="updateStatus(appointment, 'Cancelled')"
-            >
-              Cancelar
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th *ngIf="isAdmin">Cédula</th>
+            <th>Sucursal</th>
+            <th>Estado</th>
+            <th>Creado</th>
+            <th>Expira</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let appointment of appointments">
+            <td>
+              <strong class="code">{{ appointment.code }}</strong>
+            </td>
+            <td *ngIf="isAdmin">{{ appointment.customerIdNumber }}</td>
+            <td>{{ appointment.branchName }}</td>
+            <td>
+              <span [class]="'badge badge-' + appointment.status.toLowerCase()">
+                {{ getStatusLabel(appointment.status) }}
+              </span>
+            </td>
+            <td>{{ appointment.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ appointment.expiresAt | date: 'HH:mm' }}</td>
+            <td class="actions">
+              <!-- Cliente: activar -->
+              <button
+                class="btn btn-primary btn-sm"
+                *ngIf="!isAdmin && appointment.status === 'Pending'"
+                (click)="activate(appointment)"
+              >
+                Activar
+              </button>
+              <!-- Admin: activar -->
+              <button
+                class="btn btn-primary btn-sm"
+                *ngIf="isAdmin && appointment.status === 'Pending'"
+                (click)="activate(appointment)"
+              >
+                Activar
+              </button>
+              <!-- Admin: atendido -->
+              <button
+                class="btn btn-success btn-sm"
+                *ngIf="isAdmin && appointment.status === 'Active'"
+                (click)="updateStatus(appointment, 'Attended')"
+              >
+                Atendido
+              </button>
+              <!-- Cancelar -->
+              <button
+                class="btn btn-danger btn-sm"
+                *ngIf="appointment.status === 'Pending' || appointment.status === 'Active'"
+                (click)="updateStatus(appointment, 'Cancelled')"
+              >
+                Cancelar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
