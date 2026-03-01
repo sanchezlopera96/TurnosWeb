@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -32,12 +32,10 @@ import { Branch } from '../../../core/models/branch.model';
           <label>Número de Cédula</label>
           <input
             type="text"
-            [(ngModel)]="form.customerIdNumber"
-            placeholder="Ingresa tu cédula"
-            [class.error]="submitted && !form.customerIdNumber"/>
-          <span class="error-msg" *ngIf="submitted && !form.customerIdNumber">
-            La cédula es requerida
-          </span>
+            [value]="form.customerIdNumber"
+            placeholder="Número de cédula"
+            readonly
+            style="background-color: #f5f6fa; cursor: not-allowed;"/>
         </div>
 
         <div class="form-group">
@@ -87,8 +85,38 @@ import { Branch } from '../../../core/models/branch.model';
           </div>
           <div class="result-item">
             <span class="result-label">Estado</span>
-            <span class="badge badge-pending">Pendiente</span>
+            <span [class]="'badge badge-' + createdAppointment.status.toLowerCase()">
+              {{ getStatusLabel(createdAppointment.status) }}
+            </span>
           </div>
+        </div>
+
+        <div class="alert alert-success" *ngIf="actionSuccess">{{ actionSuccess }}</div>
+        <div class="alert alert-error" *ngIf="actionError">{{ actionError }}</div>
+
+        <div class="result-actions" *ngIf="createdAppointment.status === 'Pending'">
+          <button class="btn btn-primary" (click)="activateAppointment()" [disabled]="actionLoading">
+            {{ actionLoading ? 'Activando...' : '✔ Activar Turno' }}
+          </button>
+          <button class="btn btn-danger" (click)="cancelAppointment()" [disabled]="actionLoading">
+            {{ actionLoading ? 'Cancelando...' : '✖ Cancelar Turno' }}
+          </button>
+        </div>
+
+        <div class="result-actions" *ngIf="createdAppointment.status === 'Active'">
+          <span class="badge badge-active">Turno Activo ✔</span>
+          <button class="btn btn-danger" (click)="cancelAppointment()" [disabled]="actionLoading">
+            {{ actionLoading ? 'Cancelando...' : '✖ Cancelar Turno' }}
+          </button>
+        </div>
+
+        <div class="result-actions" *ngIf="createdAppointment.status === 'Cancelled'">
+          <span class="badge badge-cancelled">Turno Cancelado</span>
+        </div>
+
+        <div class="result-actions" *ngIf="remainingTime === 'Expirado'">
+          <span class="badge badge-expired">Turno Expirado</span>
+          <button class="btn btn-primary" (click)="newAppointment()">Agendar Nuevo Turno</button>
         </div>
       </div>
 
@@ -158,6 +186,13 @@ import { Branch } from '../../../core/models/branch.model';
         color: #d97706;
       }
     }
+    
+    .result-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      align-items: center;
+    }
   `]
 })
 export class AppointmentCreateComponent implements OnInit {
@@ -179,7 +214,8 @@ export class AppointmentCreateComponent implements OnInit {
     private appointmentService: AppointmentService,
     private branchService: BranchService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -190,7 +226,10 @@ export class AppointmentCreateComponent implements OnInit {
   loadBranches(): void {
     this.branchService.getAll().subscribe({
       next: (response) => {
-        if (response.success) this.branches = response.data;
+        if (response.success) {
+          this.branches = response.data;
+          this.cdr.detectChanges();
+        }
       }
     });
   }
@@ -209,30 +248,111 @@ export class AppointmentCreateComponent implements OnInit {
         if (response.success) {
           this.createdAppointment = response.data;
           this.successMessage = response.message;
+          const mins = Math.floor(this.createdAppointment.remainingSeconds / 60);
+          const secs = this.createdAppointment.remainingSeconds % 60;
+          this.remainingTime = `${mins}:${secs.toString().padStart(2, '0')}`;
           this.startTimer();
         } else {
           this.errorMessage = response.message;
         }
+        this.cdr.detectChanges();
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.errorMessage = 'Error al agendar el turno.';
+        this.errorMessage = err?.error?.message || 'Error al agendar el turno.';
+        this.cdr.detectChanges();
       }
     });
   }
 
   startTimer(): void {
+    let seconds = this.createdAppointment.remainingSeconds;
+    
     this.timerInterval = setInterval(() => {
-      if (this.createdAppointment.remainingSeconds > 0) {
-        this.createdAppointment.remainingSeconds--;
-        const mins = Math.floor(this.createdAppointment.remainingSeconds / 60);
-        const secs = this.createdAppointment.remainingSeconds % 60;
+      seconds--;
+      if (seconds > 0) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
         this.remainingTime = `${mins}:${secs.toString().padStart(2, '0')}`;
       } else {
-        clearInterval(this.timerInterval);
         this.remainingTime = 'Expirado';
+        clearInterval(this.timerInterval);
       }
+      this.cdr.detectChanges();
     }, 1000);
+  }
+
+  actionLoading = false;
+  actionSuccess = '';
+  actionError = '';
+
+  getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      'Pending': 'Pendiente',
+      'Active': 'Activo',
+      'Expired': 'Expirado',
+      'Attended': 'Atendido',
+      'Cancelled': 'Cancelado'
+    };
+    return labels[status] || status;
+  }
+
+  activateAppointment(): void {
+    this.actionLoading = true;
+    this.actionSuccess = '';
+    this.actionError = '';
+    this.appointmentService.activate(this.createdAppointment.id).subscribe({
+      next: (response) => {
+        this.actionLoading = false;
+        if (response.success) {
+          this.createdAppointment = response.data;
+          this.actionSuccess = 'Turno activado exitosamente.';
+          clearInterval(this.timerInterval);
+        } else {
+          this.actionError = response.message;
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.actionLoading = false;
+        this.actionError = err?.error?.message || 'Error al activar el turno.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  cancelAppointment(): void {
+    this.actionLoading = true;
+    this.actionSuccess = '';
+    this.actionError = '';
+    this.appointmentService.updateStatus(this.createdAppointment.id, { status: 'Cancelled' }).subscribe({
+      next: (response) => {
+        this.actionLoading = false;
+        if (response.success) {
+          this.createdAppointment = response.data;
+          this.actionSuccess = 'Turno cancelado.';
+          clearInterval(this.timerInterval);
+        } else {
+          this.actionError = response.message;
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.actionLoading = false;
+        this.actionError = err?.error?.message || 'Error al cancelar el turno.';
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  newAppointment(): void {
+    this.createdAppointment = null;
+    this.form = { customerIdNumber: this.authService.getIdentifier() || '', branchId: '' };
+    this.submitted = false;
+    this.successMessage = '';
+    this.errorMessage = '';
+    clearInterval(this.timerInterval);
+    this.cdr.detectChanges();
   }
 
   goBack(): void {
