@@ -12,13 +12,13 @@ import { Branch } from '../../../core/models/branch.model';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="page-container">
-      <div class="page-header">
+    <div class="page-container" style="display:flex; flex-direction:column; align-items:center;">
+      <div class="page-header" style="width: 100%; max-width: 500px; display: flex; justify-content: space-between; align-items: center;">
         <h2>Agendar Turno</h2>
         <button class="btn btn-secondary" (click)="goBack()">← Volver</button>
       </div>
 
-      <div class="card" style="max-width: 500px;">
+      <div class="card" style="max-width: 500px; width: 100%;">
 
         <div class="alert alert-success" *ngIf="successMessage">
           {{ successMessage }}
@@ -68,7 +68,7 @@ import { Branch } from '../../../core/models/branch.model';
       </div>
 
       <!-- Turno creado -->
-      <div class="card appointment-result" *ngIf="createdAppointment">
+      <div class="card appointment-result" *ngIf="createdAppointment" style="max-width: 500px; width: 100%;">
         <h3>✅ Turno Agendado</h3>
         <div class="result-grid">
           <div class="result-item">
